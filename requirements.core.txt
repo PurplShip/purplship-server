@@ -7,6 +7,7 @@ purplship-server.core
 purplship-server.events
 purplship-server.graph
 purplship-server.manager
+purplship-server.organizations
 purplship-server.pricing
 purplship-server.proxy
 purplship.aramex
