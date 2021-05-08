@@ -1,6 +1,6 @@
 {% extends "purpleserver/base_site.html" %}
 {% load i18n static %}
-{% block title %}Purplship | Tracking - {{ tracker.tracking_number }}{% endblock %}
+{% block title %} | Tracking - {{ tracker.tracking_number }}{% endblock %}
 
 {% block root %}
   <section class="hero is-fullheight">
@@ -16,7 +16,7 @@
         <div class="card-content">
 
           <p class="has-text-centered pb-4">
-            <span class="tag is-primary is-medium">{{ carrier_name }}</span>
+            <span class="tag is-{{ carrier_name|lower }} is-medium">{{ carrier_name }}</span>
           </p>
 
           <p class="subtitle has-text-centered is-6">
