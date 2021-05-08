@@ -19,7 +19,8 @@ from purpleserver.core.serializers import (
     ShippingRequest,
     ShipmentCancelRequest,
     LABEL_TYPES,
-    LabelType
+    LabelType,
+    Message,
 )
 from purpleserver.manager.serializers.address import AddressSerializer
 from purpleserver.manager.serializers.customs import CustomsSerializer
@@ -39,6 +40,7 @@ class ShipmentSerializer(ShipmentData):
     selected_rate = Rate(required=False, allow_null=True)
     tracking_url = CharField(required=False, allow_blank=True, allow_null=True)
     test_mode = BooleanField(required=False)
+    messages = Message(many=True, required=False)
 
     def __init__(self, instance: models.Shipment = None, **kwargs):
         data = kwargs.get('data')
@@ -50,11 +52,12 @@ class ShipmentSerializer(ShipmentData):
 
     @transaction.atomic
     def create(self, validated_data: dict) -> models.Shipment:
+        test = validated_data.get('test')
         context_user = self._context_user
         carrier_ids = validated_data.get('carrier_ids', [])
         carriers = Carriers.list(carrier_ids=carrier_ids, created_by=context_user) if any(carrier_ids) else []
         rate_response: datatypes.RateResponse = SerializerDecorator[RateSerializer](
-            data=validated_data, context_user=context_user).save().instance
+            data=validated_data, context_user=context_user).save(test=test).instance
         test_mode = all([r.test_mode for r in rate_response.rates])
 
         shipment_data = {
@@ -111,10 +114,6 @@ class ShipmentSerializer(ShipmentData):
         if validated_data.get('customs') is not None:
             changes.append('customs')
             save_one_to_one_data('customs', CustomsSerializer, instance, payload=validated_data, context_user=context_user)
-
-        if 'rates' in validated_data:
-            changes.append('rates')
-            instance.rates = DP.to_dict(validated_data.get('rates', []))
 
         if 'selected_rate' in validated_data:
             selected_rate = validated_data.get('selected_rate', {})
